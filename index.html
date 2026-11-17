@@ -1,0 +1,530 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Vocabulary Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: setup bar on top, then a sticky bingo-ball caller beside a wrap of tappable cards. Marked squares get a dauber blot. */
+:root{
+  --bg:#EDF1F5;
+  --surface:#FFFFFF;
+  --surface-2:#E3E9F0;
+  --fg:#15202D;
+  --muted:#56667A;
+  --line:#C7D1DC;
+  --accent:#D6195F;
+  --accent-fg:#FFFFFF;
+  --dauber:rgba(214,25,95,.5);
+  --ball:#FFC52E;
+  --ball-ink:#15202D;
+  --warn:#B45309;
+  --font-display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Andika','Verdana',system-ui,sans-serif;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1520;
+    --surface:#16212F;
+    --surface-2:#1E2C3D;
+    --fg:#E8EFF7;
+    --muted:#97A8BB;
+    --line:#2A3B4F;
+    --accent:#FF5C96;
+    --accent-fg:#2B0716;
+    --dauber:rgba(255,92,150,.5);
+    --ball:#FFCF4D;
+    --ball-ink:#15202D;
+    --warn:#F2A64A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1520;
+  --surface:#16212F;
+  --surface-2:#1E2C3D;
+  --fg:#E8EFF7;
+  --muted:#97A8BB;
+  --line:#2A3B4F;
+  --accent:#FF5C96;
+  --accent-fg:#2B0716;
+  --dauber:rgba(255,92,150,.5);
+  --ball:#FFCF4D;
+  --ball-ink:#15202D;
+  --warn:#F2A64A;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.45}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+
+.page{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.5vw,2.6rem);line-height:1.1}
+.sub{margin:6px 0 0;color:var(--muted);max-width:60ch}
+
+/* setup */
+.setup{display:flex;flex-wrap:wrap;gap:16px 32px;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{padding:0;margin:0 0 8px;font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{position:relative}
+.opt input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer}
+.opt label{display:block;padding:8px 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);font-size:.95rem;white-space:nowrap}
+.opt input:checked + label{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.opt input:focus-visible + label{outline:3px solid var(--fg);outline-offset:2px}
+
+.note{margin:0;padding:10px 14px;background:var(--surface-2);border-radius:10px;font-size:.9rem}
+
+/* play area */
+.play{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.play{grid-template-columns:minmax(0,1fr)}}
+
+.caller{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;min-width:0}
+@media (max-width:860px){.caller{position:static}}
+
+.ball{width:min(100%,250px);aspect-ratio:1;margin-inline:auto;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 26%, color-mix(in srgb,var(--ball) 60%,#fff) 0, var(--ball) 38%, color-mix(in srgb,var(--ball) 78%,#7a4a00) 100%);
+  box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.ball.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.86) rotate(-4deg)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+.ball-in{width:76%;aspect-ratio:1;border-radius:50%;background:var(--surface);color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:8px}
+.b-emo,.e{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.b-emo{font-size:64px;line-height:1}
+.b-word{font-family:var(--font-display);font-weight:600;line-height:1.05}
+.b-q{font:600 4.5rem/1 var(--font-display);color:var(--muted)}
+.b-sub{font-size:.95rem;color:var(--muted)}
+
+.count{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:600 1rem/1 var(--font-display);padding:12px 18px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--fg)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{width:100%;background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-size:1.25rem;padding:16px 24px}
+.btn.ghost{background:transparent}
+.btns .btn:not(.primary){flex:1 1 auto}
+
+.hist-h{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-family:var(--font-body);font-weight:700}
+.history{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0;max-height:150px;overflow:auto}
+.history li{padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:.9rem;background:var(--surface-2)}
+.history li.now{background:var(--ball);border-color:var(--ball);color:var(--ball-ink);font-weight:700}
+.history li.empty{border:0;background:none;padding:0;color:var(--muted)}
+
+/* card bar */
+.cardbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:14px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper .lbl{font-weight:700}
+.step-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);font:600 1.25rem/1 var(--font-display);cursor:pointer}
+.step-btn:disabled{opacity:.4;cursor:not-allowed}
+output{min-width:1.6em;text-align:center;font:600 1.25rem var(--font-display);font-variant-numeric:tabular-nums}
+.hint{color:var(--muted);font-size:.9rem;margin-left:auto}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--cardmin,250px)),1fr));gap:16px}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px}
+.card-t{font-size:1.1rem}
+.status{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.card.is-check .status{color:var(--warn);font-weight:700}
+.card.is-bingo{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.card.is-bingo .status{background:var(--accent);color:var(--accent-fg);padding:3px 14px;border-radius:999px;font:600 1rem var(--font-display);letter-spacing:.06em}
+
+.grid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:6px;container-type:inline-size}
+.cell{--cell:calc(100cqw / var(--n));position:relative;isolation:isolate;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--fg);font-weight:700;text-align:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.cell::after{content:"";position:absolute;inset:8%;border-radius:50%;background:var(--dauber);z-index:-1;transform:scale(.4);opacity:0;transition:transform .15s,opacity .15s;pointer-events:none}
+.cell[aria-pressed="true"]::after{transform:scale(1);opacity:1}
+.cell.warn{outline:2.5px dashed var(--warn);outline-offset:-4px}
+.emo{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-size:calc(var(--cell) * var(--ek));line-height:1}
+.wd{font-size:calc(var(--cell) * var(--k));line-height:1.05}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+<main class="page">
+  <header>
+    <h1>Vocabulary Bingo</h1>
+    <p class="sub">Pick a topic, deal the cards, then call words one at a time. Kids tap a square when they hear its word.</p>
+  </header>
+
+  <section class="setup" aria-label="Game setup">
+    <fieldset>
+      <legend>Topic</legend>
+      <div class="opts">
+        <span class="opt"><input type="radio" id="t-halloween" name="topic" value="halloween" checked><label for="t-halloween">Halloween</label></span>
+        <span class="opt"><input type="radio" id="t-animals" name="topic" value="animals"><label for="t-animals">Animals</label></span>
+        <span class="opt"><input type="radio" id="t-food" name="topic" value="food"><label for="t-food">Food</label></span>
+        <span class="opt"><input type="radio" id="t-body" name="topic" value="body"><label for="t-body">Body parts</label></span>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Level</legend>
+      <div class="opts">
+        <span class="opt"><input type="radio" id="l-easy" name="level" value="easy" checked><label for="l-easy">Easy, 3×3 card</label></span>
+        <span class="opt"><input type="radio" id="l-hard" name="level" value="hard"><label for="l-hard">Harder, 4×4 card</label></span>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Squares show</legend>
+      <div class="opts">
+        <span class="opt"><input type="radio" id="s-both" name="style" value="both" checked><label for="s-both">Picture and word</label></span>
+        <span class="opt"><input type="radio" id="s-words" name="style" value="words"><label for="s-words">Word only</label></span>
+        <span class="opt"><input type="radio" id="s-pictures" name="style" value="pictures"><label for="s-pictures">Picture only</label></span>
+      </div>
+    </fieldset>
+  </section>
+
+  <p id="note" class="note" hidden></p>
+
+  <div class="play">
+    <section class="caller" aria-label="Word caller">
+      <div class="ball" id="ball" aria-live="polite"><div class="ball-in" id="ballIn"></div></div>
+      <div class="count" id="count"></div>
+      <div class="btns">
+        <button type="button" class="btn primary" id="callBtn">Call first word</button>
+        <button type="button" class="btn" id="sayBtn" hidden>Say it</button>
+        <button type="button" class="btn ghost" id="resetBtn">New game</button>
+      </div>
+      <div>
+        <h2 class="hist-h">Called so far</h2>
+        <ul class="history" id="history"></ul>
+      </div>
+    </section>
+
+    <section aria-label="Bingo cards">
+      <div class="cardbar">
+        <div class="stepper" role="group" aria-label="Number of cards">
+          <span class="lbl">Cards</span>
+          <button type="button" class="step-btn" id="minus" aria-label="Fewer cards">−</button>
+          <output id="cnt" aria-live="polite">4</output>
+          <button type="button" class="step-btn" id="plus" aria-label="More cards">+</button>
+        </div>
+        <button type="button" class="btn" id="dealBtn">Deal new cards</button>
+        <span class="hint">Tap a square to mark it.</span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+  function pairs(str){
+    return str.split(',').map(function(s){
+      var p = s.trim().split(':');
+      return { w: p[0], e: p[1] || '' };
+    });
+  }
+
+  var TOPICS = {
+    halloween: {
+      easy: pairs("bat:🦇,owl:🦉,mask:🎭,ghost:👻,witch:🧙,broom:🧹,candy:🍬,trick,treat:🍫,black:⚫,mummy"),
+      hard: pairs("pumpkin:🎃,ghost:👻,witch:🧙,skeleton:💀,spider:🕷️,bat:🦇,candy:🍬,costume,haunted:🏚️,vampire:🧛,zombie:🧟,monster:👹,broom:🧹,cauldron,spooky,trick,treat:🍫,mask:🎭,cobweb:🕸️,graveyard:🪦,mummy,owl:🦉,black:⚫,orange:🟠,lantern:🏮")
+    },
+    animals: {
+      easy: pairs("cat:🐱,dog:🐶,fish:🐟,bird:🐦,cow:🐮,pig:🐷,duck:🦆,horse:🐴,sheep:🐑,frog:🐸,bear:🐻,lion:🦁,mouse:🐭,rabbit:🐰,goat:🐐"),
+      hard: pairs("elephant:🐘,giraffe:🦒,monkey:🐵,tiger:🐯,zebra:🦓,kangaroo:🦘,dolphin:🐬,penguin:🐧,crocodile:🐊,butterfly:🦋,turtle:🐢,squirrel:🐿️,hippo:🦛,rhino:🦏,gorilla:🦍,parrot:🦜,octopus:🐙,shark:🦈,whale:🐳,snake:🐍,chicken:🐔,donkey,camel:🐫,lizard:🦎,flamingo:🦩")
+    },
+    food: {
+      easy: pairs("apple:🍎,bread:🍞,milk:🥛,egg:🥚,cheese:🧀,rice:🍚,banana:🍌,pizza:🍕,cake:🍰,water:💧,juice:🧃,fish:🐟,soup:🍲,carrot:🥕,grapes:🍇"),
+      hard: pairs("apple:🍎,bread:🍞,milk:🥛,cheese:🧀,banana:🍌,pizza:🍕,cake:🍰,juice:🧃,soup:🍲,carrot:🥕,grapes:🍇,tomato:🍅,cucumber:🥒,potato:🥔,chicken:🍗,sandwich:🥪,pasta:🍝,orange:🍊,lemon:🍋,strawberry:🍓,broccoli:🥦,yogurt,cookie:🍪,cereal,salad:🥗")
+    },
+    body: {
+      easy: pairs("head,eye:👁️,ear:👂,nose:👃,mouth:👄,hand:✋,foot:🦶,arm:💪,leg:🦵,hair,face:🙂,finger:☝️,knee,toe,neck"),
+      hard: pairs("head,eye:👁️,ear:👂,nose:👃,mouth:👄,hand:✋,foot:🦶,arm:💪,leg:🦵,hair,face:🙂,finger:☝️,knee,toe,neck,shoulder,elbow,stomach,back,teeth:🦷,tongue:👅,thumb:👍,ankle,wrist,cheek")
+    }
+  };
+  var LEVELS = { easy: 3, hard: 4 };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { topic:'halloween', level:'easy', style:'both', count:4, cards:[], order:[], called:0, key:'' };
+
+  function shuffle(a){
+    var r = a.slice();
+    for (var i = r.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = r[i]; r[i] = r[j]; r[j] = t;
+    }
+    return r;
+  }
+
+  function poolInfo(){
+    var all = TOPICS[state.topic][state.level];
+    var n = LEVELS[state.level];
+    var need = n * n;
+    var withPic = all.filter(function(x){ return x.e; });
+    var pool = all, fallback = false;
+    if (state.style === 'pictures') {
+      if (withPic.length >= need) pool = withPic; else fallback = true;
+    }
+    return { pool:pool, n:n, need:need, fallback:fallback, picCount:withPic.length, total:all.length };
+  }
+
+  function dealCard(pool, need){
+    return { words: shuffle(pool).slice(0, need), marked: Array(need).fill(false) };
+  }
+
+  function lines(n){
+    var L = [], i, j;
+    for (i = 0; i < n; i++) {
+      var row = [], col = [];
+      for (j = 0; j < n; j++) { row.push(i*n + j); col.push(j*n + i); }
+      L.push(row); L.push(col);
+    }
+    var d1 = [], d2 = [];
+    for (i = 0; i < n; i++) { d1.push(i*n + i); d2.push(i*n + (n-1-i)); }
+    L.push(d1); L.push(d2);
+    return L;
+  }
+
+  function wordSize(w){
+    var l = w.length;
+    return l <= 5 ? 36 : l <= 7 ? 30 : l <= 9 ? 25 : 21;
+  }
+
+  function updateNote(info){
+    var el = $('note');
+    if (info.fallback) {
+      el.hidden = false;
+      el.textContent = 'Only ' + info.picCount + ' of ' + info.total + ' words in this list have a picture, so some squares show the word instead.';
+    } else if (info.pool.length === info.need) {
+      el.hidden = false;
+      el.textContent = 'This list has exactly ' + info.need + ' words, so every card holds the same words in a different order.';
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function buildCards(){
+    var n = LEVELS[state.level];
+    var wrap = $('cards');
+    wrap.style.setProperty('--cardmin', n === 3 ? '250px' : '330px');
+    wrap.textContent = '';
+    state.cards.forEach(function(card, ci){
+      var art = document.createElement('article');
+      art.className = 'card';
+      art.dataset.i = ci;
+      art.innerHTML = '<div class="card-h"><h3 class="card-t">Card ' + (ci + 1) + '</h3><span class="status"></span></div><div class="grid" style="--n:' + n + '"></div>';
+      var grid = art.querySelector('.grid');
+      card.words.forEach(function(o){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'cell';
+        b.setAttribute('aria-pressed', 'false');
+        b.setAttribute('aria-label', o.w);
+        var showPic = !!o.e && state.style !== 'words';
+        var picOnly = showPic && state.style === 'pictures';
+        var html = '';
+        if (showPic) html += '<span class="emo" style="--ek:' + (picOnly ? 0.62 : 0.48) + '">' + o.e + '</span>';
+        if (!picOnly) {
+          var cap = showPic ? 0.2 : 0.3;
+          var k = Math.min(cap, 1.45 / o.w.length);
+          html += '<span class="wd" style="--k:' + k.toFixed(3) + '">' + o.w + '</span>';
+        }
+        b.innerHTML = html;
+        grid.appendChild(b);
+      });
+      wrap.appendChild(art);
+    });
+  }
+
+  function refreshCard(ci){
+    var art = $('cards').children[ci];
+    var card = state.cards[ci];
+    if (!art || !card) return;
+    var n = Math.round(Math.sqrt(card.words.length));
+    var calledSet = {};
+    state.order.slice(0, state.called).forEach(function(o){ calledSet[o.w] = true; });
+    var done = lines(n).filter(function(l){ return l.every(function(i){ return card.marked[i]; }); });
+    var bingo = false, warn = {};
+    if (state.called === 0) {
+      bingo = done.length > 0;
+    } else {
+      done.forEach(function(l){
+        var bad = l.filter(function(i){ return !calledSet[card.words[i].w]; });
+        if (bad.length === 0) bingo = true; else bad.forEach(function(i){ warn[i] = true; });
+      });
+    }
+    if (bingo) warn = {};
+    var hasWarn = Object.keys(warn).length > 0;
+    Array.prototype.forEach.call(art.querySelectorAll('.cell'), function(c, i){
+      c.setAttribute('aria-pressed', card.marked[i] ? 'true' : 'false');
+      c.classList.toggle('warn', !!warn[i]);
+    });
+    art.classList.toggle('is-bingo', bingo);
+    art.classList.toggle('is-check', hasWarn);
+    var marked = card.marked.filter(Boolean).length;
+    art.querySelector('.status').textContent = bingo ? 'BINGO!' : hasWarn ? 'Check the dashed squares' : marked + ' marked';
+  }
+
+  function refreshAll(){
+    for (var i = 0; i < state.cards.length; i++) refreshCard(i);
+  }
+
+  function renderCaller(){
+    var total = state.order.length, k = state.called;
+    var cur = k ? state.order[k - 1] : null;
+    var ball = $('ballIn');
+    if (cur) {
+      ball.innerHTML = (cur.e ? '<span class="b-emo">' + cur.e + '</span>' : '') +
+        '<span class="b-word" style="font-size:' + wordSize(cur.w) + 'px">' + cur.w + '</span>';
+    } else {
+      ball.innerHTML = '<span class="b-q">?</span><span class="b-sub">Ready</span>';
+    }
+    $('count').textContent = k + ' of ' + total + ' called';
+    var cb = $('callBtn');
+    cb.disabled = k >= total;
+    cb.textContent = k >= total ? 'All words called' : (k ? 'Call next word' : 'Call first word');
+    $('sayBtn').disabled = !cur;
+    var h = $('history');
+    if (!k) {
+      h.innerHTML = '<li class="empty">No words called yet.</li>';
+    } else {
+      h.innerHTML = state.order.slice(0, k).reverse().map(function(o, i){
+        return '<li class="' + (i === 0 ? 'now' : '') + '">' + (o.e ? '<span class="e">' + o.e + '</span> ' : '') + o.w + '</li>';
+      }).join('');
+    }
+  }
+
+  function updateStepper(){
+    $('cnt').textContent = state.count;
+    $('minus').disabled = state.count <= 1;
+    $('plus').disabled = state.count >= 12;
+  }
+
+  function readRadio(name){
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : null;
+  }
+
+  function applySetup(){
+    state.topic = readRadio('topic') || state.topic;
+    state.level = readRadio('level') || state.level;
+    state.style = readRadio('style') || state.style;
+    var info = poolInfo();
+    var key = [state.topic, state.level, info.pool.map(function(o){ return o.w; }).join()].join('|');
+    if (key !== state.key) {
+      state.key = key;
+      state.cards = [];
+      for (var i = 0; i < state.count; i++) state.cards.push(dealCard(info.pool, info.need));
+      state.order = shuffle(info.pool);
+      state.called = 0;
+    }
+    updateNote(info);
+    buildCards();
+    refreshAll();
+    renderCaller();
+  }
+
+  function newGame(){
+    var info = poolInfo();
+    state.order = shuffle(info.pool);
+    state.called = 0;
+    state.cards.forEach(function(c){ c.marked = c.marked.map(function(){ return false; }); });
+    renderCaller();
+    refreshAll();
+  }
+
+  function dealNew(){
+    var info = poolInfo();
+    state.cards = [];
+    for (var i = 0; i < state.count; i++) state.cards.push(dealCard(info.pool, info.need));
+    buildCards();
+    refreshAll();
+  }
+
+  function setCount(c){
+    c = Math.max(1, Math.min(12, c));
+    state.count = c;
+    var info = poolInfo();
+    while (state.cards.length < c) state.cards.push(dealCard(info.pool, info.need));
+    state.cards.length = c;
+    updateStepper();
+    buildCards();
+    refreshAll();
+  }
+
+  function callNext(){
+    if (state.called >= state.order.length) return;
+    state.called++;
+    renderCaller();
+    refreshAll();
+    var ball = $('ball');
+    ball.classList.remove('pop');
+    void ball.offsetWidth;
+    ball.classList.add('pop');
+  }
+
+  function say(){
+    if (!state.called) return;
+    try {
+      var w = state.order[state.called - 1].w;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(w);
+      u.lang = 'en-US';
+      u.rate = 0.8;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function wire(){
+    Array.prototype.forEach.call(document.querySelectorAll('.setup input'), function(el){
+      el.addEventListener('change', applySetup);
+    });
+    $('cards').addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('.cell') : null;
+      if (!b) return;
+      var art = b.closest('.card');
+      var ci = +art.dataset.i;
+      var wi = Array.prototype.indexOf.call(b.parentNode.children, b);
+      var m = state.cards[ci].marked;
+      m[wi] = !m[wi];
+      refreshCard(ci);
+    });
+    $('callBtn').addEventListener('click', callNext);
+    $('resetBtn').addEventListener('click', newGame);
+    $('dealBtn').addEventListener('click', dealNew);
+    $('minus').addEventListener('click', function(){ setCount(state.count - 1); });
+    $('plus').addEventListener('click', function(){ setCount(state.count + 1); });
+    var canSpeak = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+    $('sayBtn').hidden = !canSpeak;
+    $('sayBtn').addEventListener('click', say);
+  }
+
+  function start(data){
+    wire();
+    var ok = data && TOPICS[data.topic] && Array.isArray(data.cards) && Array.isArray(data.order) && data.cards.length;
+    if (ok) {
+      Object.keys(state).forEach(function(k){ if (data[k] !== undefined) state[k] = data[k]; });
+      ['topic','level','style'].forEach(function(name){
+        var el = document.querySelector('input[name="' + name + '"][value="' + state[name] + '"]');
+        if (el) el.checked = true;
+      });
+      updateStepper();
+      updateNote(poolInfo());
+      buildCards();
+      refreshAll();
+      renderCaller();
+    } else {
+      updateStepper();
+      applySetup();
+    }
+    try {
+      if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+        window.claude.hot.snapshot(function(){ return JSON.parse(JSON.stringify(state)); });
+      }
+    } catch (e) {}
+  }
+
+  if (window.claude && window.claude.hot && window.claude.hot.ready) {
+    window.claude.hot.ready(function(d){ start(d || {}); });
+  } else {
+    start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+  }
+})();
+</script>
+
+</body></html>
